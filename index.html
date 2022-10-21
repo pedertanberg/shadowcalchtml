@@ -4,26 +4,282 @@
     <title>Mapbox GL JS debug page</title>
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v2.1.0/mapbox-gl.css' rel='stylesheet' />
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body { margin: 0; padding: 0; }
-        html, body, #map { height: 100%; }
-        #time { position: absolute; width: 90%; top: 10px; left: 10px; }
+        body { margin: 0; padding: 0; background-color: #040c18; }
+        html, body, #map { height: 100%; background-color: #040c18; }
+        #map { width: 100%; height: 80%;}
+        .parent{
+            display:block;
+            height:20%;
+            width:100%;
+            border-radius: 0% 0% 50% 50% ;
+            background-color: #e6e4e0;
+            
+        }
+        /* #time { position: absolute; width: 90%; top: 10px; left: 10px; } */
+        .mapbox-control-time {
+			/* padding: 20px;
+            width:100%; */
+            display:flex;
+            justify-content: center;
+            border-radius: 40%;
+		}
+        #time{
+            display:flex;
+            justify-content: center;
+        }
+        /* From uiverse.io */
+        button {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        outline: none;
+        border: 0;
+        vertical-align: middle;
+        text-decoration: none;
+        background: transparent;
+        padding: 0;
+        font-size: inherit;
+        font-family: inherit;
+        }
+
+        button.learn-more {
+        width: 12rem;
+        height: auto;
+        }
+
+        button.learn-more .circle {
+        transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+        position: relative;
+        display: block;
+        margin: 0;
+        width: 3rem;
+        height: 3rem;
+        background: #282936;
+        border-radius: 1.625rem;
+        }
+
+        button.learn-more .circle .icon {
+        transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        margin: auto;
+        background: #fff;
+        }
+
+        button.learn-more .circle .icon.arrow {
+        transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+        left: 0.625rem;
+        width: 1.125rem;
+        height: 0.125rem;
+        background: none;
+        }
+
+        button.learn-more .circle .icon.arrow::before {
+        position: absolute;
+        content: "";
+        top: -0.29rem;
+        right: 0.0625rem;
+        width: 0.625rem;
+        height: 0.625rem;
+        border-top: 0.125rem solid #fff;
+        border-right: 0.125rem solid #fff;
+        transform: rotate(45deg);
+        }
+
+        button.learn-more .button-text {
+        transition: all 0.45s cubic-bezier(0.65, 0, 0.076, 1);
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 0.75rem 0;
+        margin: 0 0 0 1.85rem;
+        color: #282936;
+        font-weight: 700;
+        line-height: 1.6;
+        text-align: center;
+        text-transform: uppercase;
+        }
+
+        button:hover .circle {
+        width: 100%;
+        }
+
+        button:hover .circle .icon.arrow {
+        background: #fff;
+        transform: translate(1rem, 0);
+        }
+
+        button:hover .button-text {
+        color: #fff;
+        }
+        h1 { color: #111; font-family: 'Helvetica Neue', sans-serif; font-size: 30px; font-weight: bold; letter-spacing: -1px; line-height: 1; text-align: center; }
     </style>
 </head>
 
 <body>
 <div id='map'></div>
-<input id='time' type='range' min="0" max="24" />
-<input type="text" autocomplete="street-address" />
+<!-- <input id='time' type='range' min="0" max="86400" /> -->
+<div class="parent">
+    <div class="mapbox-control-time" style="pointer-events: auto;">
+        <button class="learn-more" id="decrement">
+            <span class="circle" aria-hidden="true">
+            <span class="icon arrow"></span>
+            </span>
+            <span class="button-text">-1 hour</span>
+        </button>
+        <button class="learn-more" id="increment">
+            <span class="circle" aria-hidden="true">
+            <span class="icon arrow"></span>
+            </span>
+            <span class="button-text">+1 hour</span>
+        </button>
+        <!-- <button id="decrement" class="button2">-1 hour</button>
+        <button id="increment" class="button2">+1 hour</button> -->
+        <!-- <button id="play">Play</button>
+        <button id="stop">Stop</button> -->
+        
+        <span id="loader" style="padding: 3px;"></span>
+    </div>
+    <h1 id="time"></h1>
+</div>
 
-<script src="https://api.tiles.mapbox.com/mapbox-gl-js/v2.1.0/mapbox-gl.js"></script>
-<script src='https://unpkg.com/suncalc@1.9.0/suncalc.js'></script>
-<script src='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js'></script>
-<link rel='stylesheet' href='https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css' type='text/css' />
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.1/mapbox-gl.js'></script>
+<script src='https://unpkg.com/suncalc@1.8.0/suncalc.js'></script>
 <!-- <script src='/debug/access_token_generated.js'></script> -->
 <script>
-
+mapboxgl.accessToken = 'pk.eyJ1IjoiYWxhbnRnZW8tcHJlc2FsZXMiLCJhIjoiY2pzcTA4NjRiMTMxczQzcDFqa29maXk3bSJ9.pVYNTFKfcOXA_U_5TUwDWw';
+var map = window.map = new mapboxgl.Map({
+    container: 'map',
+    zoom: 15,
+    center: [10.749090832296009, 59.928186946788855],
+    style: 'mapbox://styles/mapbox/streets-v11',
+    hash: true,
+    pitch: 45,
+    bearing: -17.6,
+    container: 'map',
+    antialias: true
+});
+var date = new Date();
+var now = new Date();
+// var time = date.getHours() * 60 * 60 + date.getMinutes() * 60 + date.getSeconds();
+// var timeInput = document.getElementById('time');
+// timeInput.value = time;
+// timeInput.oninput = () => {
+//     time = +timeInput.value;
+//     date.setHours(Math.floor(time / 60 / 60));
+//     date.setMinutes(Math.floor(time / 60) % 60);
+//     date.setSeconds(time % 60);
+//     map.triggerRepaint();
+// };
+map.addControl(new mapboxgl.NavigationControl());
+class BuildingShadows {
+    constructor() {
+        this.id = 'building-shadows';
+        this.type = 'custom';
+        this.renderingMode = '3d';
+        this.opacity = 0.5;
+    }
+    onAdd(map, gl) {
+        this.map = map;
+        const vertexSource = `
+        uniform mat4 u_matrix;
+        uniform float u_height_factor;
+        uniform float u_altitude;
+        uniform float u_azimuth;
+        attribute vec2 a_pos;
+        attribute vec4 a_normal_ed;
+        attribute lowp vec2 a_base;
+        attribute lowp vec2 a_height;
+        void main() {
+            float base = max(0.0, a_base.x);
+            float height = max(0.0, a_height.x);
+            float t = mod(a_normal_ed.x, 2.0);
+            vec4 pos = vec4(a_pos, t > 0.0 ? height : base, 1);
+            float len = pos.z * u_height_factor / tan(u_altitude);
+            pos.x += cos(u_azimuth) * len;
+            pos.y += sin(u_azimuth) * len;
+            pos.z = 0.0;
+            gl_Position = u_matrix * pos;
+        }
+        `;
+        const fragmentSource = `
+        void main() {
+            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        }
+        `;
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
+        gl.shaderSource(vertexShader, vertexSource);
+        gl.compileShader(vertexShader);
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fragmentShader, fragmentSource);
+        gl.compileShader(fragmentShader);
+        this.program = gl.createProgram();
+        gl.attachShader(this.program, vertexShader);
+        gl.attachShader(this.program, fragmentShader);
+        gl.linkProgram(this.program);
+        gl.validateProgram(this.program);
+        this.uMatrix = gl.getUniformLocation(this.program, "u_matrix");
+        this.uHeightFactor = gl.getUniformLocation(this.program, "u_height_factor");
+        this.uAltitude = gl.getUniformLocation(this.program, "u_altitude");
+        this.uAzimuth = gl.getUniformLocation(this.program, "u_azimuth");
+        this.aPos = gl.getAttribLocation(this.program, "a_pos");
+        this.aNormal = gl.getAttribLocation(this.program, "a_normal_ed");
+        this.aBase = gl.getAttribLocation(this.program, "a_base");
+        this.aHeight = gl.getAttribLocation(this.program, "a_height");
+    }
+    render(gl, matrix) {
+        gl.useProgram(this.program);
+        const source = this.map.style.sourceCaches['composite'];
+        const coords = source.getVisibleCoordinates().reverse();
+        const buildingsLayer = map.getLayer('3d-buildings');
+        const context = this.map.painter.context;
+        const {lng, lat} = this.map.getCenter();
+        const pos = SunCalc.getPosition(date, lat, lng);
+        gl.uniform1f(this.uAltitude, pos.altitude);
+        gl.uniform1f(this.uAzimuth, pos.azimuth + 3 * Math.PI / 2);
+        map.setLight({
+            anchor: 'map',
+            position: [1.5, 180 + pos.azimuth * 180 / Math.PI, 90 - pos.altitude * 180 / Math.PI],
+            'position-transition': {duration: 0},
+            color: '#fdb'
+            // color: `hsl(20, ${50 * Math.cos(pos.altitude)}%, ${ 200 * Math.sin(pos.altitude) }%)`
+        }, {duration: 0});
+        this.opacity = Math.sin(Math.max(pos.altitude, 0)) * 0.9;
+        for (const coord of coords) {
+            const tile = source.getTile(coord);
+            const bucket = tile.getBucket(buildingsLayer);
+            if (!bucket) continue;
+            const [heightBuffer, baseBuffer] = bucket.programConfigurations.programConfigurations['3d-buildings']._buffers;
+            gl.uniformMatrix4fv(this.uMatrix, false, coord.posMatrix);
+            gl.uniform1f(this.uHeightFactor, Math.pow(2, coord.overscaledZ) / tile.tileSize / 8);
+            for (const segment of bucket.segments.get()) {
+                const numPrevAttrib = context.currentNumAttributes || 0;
+                const numNextAttrib = 2;
+                for (let i = numNextAttrib; i < numPrevAttrib; i++) gl.disableVertexAttribArray(i);
+                const vertexOffset = segment.vertexOffset || 0;
+                gl.enableVertexAttribArray(this.aPos);
+                gl.enableVertexAttribArray(this.aNormal);
+                gl.enableVertexAttribArray(this.aHeight);
+                gl.enableVertexAttribArray(this.aBase);
+                bucket.layoutVertexBuffer.bind();
+                gl.vertexAttribPointer(this.aPos, 2, gl.SHORT, false, 12, 12 * vertexOffset);
+                gl.vertexAttribPointer(this.aNormal, 4, gl.SHORT, false, 12, 4 + 12 * vertexOffset);
+                heightBuffer.bind();
+                gl.vertexAttribPointer(this.aHeight, 1, gl.FLOAT, false, 4, 4 * vertexOffset);
+                baseBuffer.bind();
+                gl.vertexAttribPointer(this.aBase, 1, gl.FLOAT, false, 4, 4 * vertexOffset);
+                bucket.indexBuffer.bind();
+                context.currentNumAttributes = numNextAttrib;
+                gl.drawElements(gl.TRIANGLES, segment.primitiveLength * 3, gl.UNSIGNED_SHORT, segment.primitiveOffset * 3 * 2);
+            }
+        }
+    }
+}
 var data = [
   {
     "Navn": "FYR Bistronomi & Bar",
@@ -1421,144 +1677,13 @@ var data = [
     "lon": 10.768339030587978
   }
 ]
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWxhbnRnZW8tcHJlc2FsZXMiLCJhIjoiY2pzcTA4NjRiMTMxczQzcDFqa29maXk3bSJ9.pVYNTFKfcOXA_U_5TUwDWw';
-var map = window.map = new mapboxgl.Map({
-    container: 'map',
-    zoom: 15,
-    center: [10.74609,59.91273],
-    style: 'mapbox://romeodigital.cjj3km0x101boaspjvjbtzh87-2iic',
-    hash: true
-});
-var date = new Date();
-var time = date.getHours() * 60 * 60 + date.getMinutes() * 60 + date.getSeconds();
-var timeInput = document.getElementById('time');
-timeInput.value = time;
-timeInput.oninput = () => {
-    time = +timeInput.value;
-    date.setHours(Math.floor(time / 60 / 60));
-    date.setMinutes(Math.floor(time / 60) % 60);
-    date.setSeconds(time % 60);
-    map.triggerRepaint();
-};
-const geocoder = new MapboxGeocoder({
-  // Initialize the geocoder
-  accessToken: mapboxgl.accessToken, // Set the access token
-  mapboxgl: mapboxgl, // Set the mapbox-gl instance
-  marker: false // Do not use the default marker style
-});
 
-// Add the geocoder to the map
-map.addControl(geocoder);
-
-map.addControl(new mapboxgl.NavigationControl());
-
-class BuildingShadows {
-    constructor() {
-        this.id = 'building-shadows';
-        this.type = 'custom';
-        this.renderingMode = '3d';
-        this.opacity = 0.5;
-    }
-    onAdd(map, gl) {
-        this.map = map;
-        const vertexSource = `
-        uniform mat4 u_matrix;
-        uniform float u_height_factor;
-        uniform float u_altitude;
-        uniform float u_azimuth;
-        attribute vec4 a_pos_normal_ed;
-        attribute lowp vec2 a_base;
-        attribute lowp vec2 a_height;
-        void main() {
-            float base = max(0.0, a_base.x);
-            float height = max(0.0, a_height.x);
-            vec4 pos_nx = floor(a_pos_normal_ed * 0.5);
-            vec4 top_up_ny_start = a_pos_normal_ed - 2.0 * pos_nx;
-            vec3 top_up_ny = top_up_ny_start.xyz;
-            float t = top_up_ny.x;
-            vec4 pos = vec4(pos_nx.xy, t > 0.0 ? height : base, 1);
-            float len = pos.z * u_height_factor / tan(u_altitude);
-            pos.x += cos(u_azimuth) * len;
-            pos.y += sin(u_azimuth) * len;
-            pos.z = 0.0;
-            gl_Position = u_matrix * pos;
-        }
-        `;
-        const fragmentSource = `
-        void main() {
-            gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        }
-        `;
-        const vertexShader = gl.createShader(gl.VERTEX_SHADER);
-        gl.shaderSource(vertexShader, vertexSource);
-        gl.compileShader(vertexShader);
-        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-        gl.shaderSource(fragmentShader, fragmentSource);
-        gl.compileShader(fragmentShader);
-        this.program = gl.createProgram();
-        gl.attachShader(this.program, vertexShader);
-        gl.attachShader(this.program, fragmentShader);
-        gl.linkProgram(this.program);
-        gl.validateProgram(this.program);
-        this.uMatrix = gl.getUniformLocation(this.program, "u_matrix");
-        this.uHeightFactor = gl.getUniformLocation(this.program, "u_height_factor");
-        this.uAltitude = gl.getUniformLocation(this.program, "u_altitude");
-        this.uAzimuth = gl.getUniformLocation(this.program, "u_azimuth");
-        this.aPosNormalEd = gl.getAttribLocation(this.program, "a_pos_normal_ed");
-        this.aBase = gl.getAttribLocation(this.program, "a_base");
-        this.aHeight = gl.getAttribLocation(this.program, "a_height");
-    }
-    render(gl, matrix) {
-        gl.useProgram(this.program);
-        const source = this.map.style._sourceCaches['other:composite'];
-        const coords = source.getVisibleCoordinates().reverse();
-        const buildingsLayer = map.getLayer('3d-buildings');
-        const context = this.map.painter.context;
-        const {lng, lat} = this.map.getCenter();
-        const pos = SunCalc.getPosition(date, lat, lng);
-        gl.uniform1f(this.uAltitude, pos.altitude);
-        gl.uniform1f(this.uAzimuth, pos.azimuth + 3 * Math.PI / 2);
-        map.setLight({
-            anchor: 'map',
-            position: [1.5, 180 + pos.azimuth * 180 / Math.PI, 90 - pos.altitude * 180 / Math.PI],
-            'position-transition': {duration: 0},
-            color: '#fdb'
-            // color: `hsl(20, ${50 * Math.cos(pos.altitude)}%, ${ 200 * Math.sin(pos.altitude) }%)`
-        }, {duration: 0});
-        this.opacity = Math.sin(Math.max(pos.altitude, 0)) * 0.9;
-        for (const coord of coords) {
-            const tile = source.getTile(coord);
-            const bucket = tile.getBucket(buildingsLayer);
-            if (!bucket) continue;
-            const [heightBuffer, baseBuffer] = bucket.programConfigurations.programConfigurations['3d-buildings']._buffers;
-            gl.uniformMatrix4fv(this.uMatrix, false, coord.posMatrix);
-            gl.uniform1f(this.uHeightFactor, Math.pow(2, coord.overscaledZ) / tile.tileSize / 8);
-            for (const segment of bucket.segments.get()) {
-                const numPrevAttrib = context.currentNumAttributes || 0;
-                const numNextAttrib = 2;
-                for (let i = numNextAttrib; i < numPrevAttrib; i++) gl.disableVertexAttribArray(i);
-                const vertexOffset = segment.vertexOffset || 0;
-                gl.enableVertexAttribArray(this.aPosNormalEd);
-                gl.enableVertexAttribArray(this.aHeight);
-                gl.enableVertexAttribArray(this.aBase);
-                bucket.layoutVertexBuffer.bind();
-                gl.vertexAttribPointer(this.aPosNormalEd, 4, gl.SHORT, false, 8, 8 * vertexOffset);
-                heightBuffer.bind();
-                gl.vertexAttribPointer(this.aHeight, 1, gl.FLOAT, false, 4, 4 * vertexOffset);
-                baseBuffer.bind();
-                gl.vertexAttribPointer(this.aBase, 1, gl.FLOAT, false, 4, 4 * vertexOffset);
-                bucket.indexBuffer.bind();
-                context.currentNumAttributes = numNextAttrib;
-                gl.drawElements(gl.TRIANGLES, segment.primitiveLength * 3, gl.UNSIGNED_SHORT, segment.primitiveOffset * 3 * 2);
-            }
-        }
-    }
-}
-const popup = new mapboxgl.Popup({ closeButton: false });
-
+    // .setLngLat(e.lngLat)
+    // .setHTML(`<h1>${data[rest].Navn}</h1>`)
 
 for(const rest in data){
-    console.log(rest,[data[rest].lon, data[rest].lat])
+    const popup = new mapboxgl.Popup({ closeButton: true })
+    .setHTML('<h3><a>' + data[rest].Navn + '</a></h3>')
     const marker = new mapboxgl.Marker({
     color: 'red',
     scale: 0.8,
@@ -1569,7 +1694,7 @@ for(const rest in data){
     .setLngLat([data[rest].lon, data[rest].lat])
     .setPopup(popup)
     .addTo(map)
-    .togglePopup();
+    
 }
 map.on('load', () => {
     map.removeLayer('building');
@@ -1588,6 +1713,45 @@ map.on('load', () => {
     }, 'road-label');
     map.addLayer(new BuildingShadows(), '3d-buildings');
 });
+
+/* Controls setup */
+let intervalTimer;
+let displaytime = date.getHours() + ":" + ('0'+date.getMinutes()).slice(-2);
+document.getElementById('time').innerHTML += displaytime
+
+
+const increment = document.getElementById('increment');
+const decrement = document.getElementById('decrement');
+// const play = document.getElementById('play');
+// const stop = document.getElementById('stop');
+
+increment.addEventListener('click', () => {
+    now = new Date(now.getTime() + 3600000);
+    date = now
+    document.getElementById('time').innerHTML = date.getHours() + ":" + ('0'+date.getMinutes()).slice(-2)
+    map.triggerRepaint();
+}, false);
+
+decrement.addEventListener('click', () => {
+    now = new Date(now.getTime() - 3600000);
+    date = now
+    document.getElementById('time').innerHTML = date.getHours() + ":" +('0'+date.getMinutes()).slice(-2)
+
+    map.triggerRepaint();
+}, false);
+
+// play.addEventListener('click', () => {
+//     intervalTimer = setInterval(() => {
+//         now = new Date(now.getTime() + 60000);
+//         date = now
+//         map.triggerRepaint();
+//     }, 100);
+// });
+
+// stop.addEventListener('click', () => {
+//     clearInterval(intervalTimer);
+// })
+/* End controls setup */
 </script>
 </body>
 </html>
